@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visão Integrada - Endereços Gov</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            background-color: #ffffff;
+            overflow: hidden;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        .painel-unificado {
+            display: flex;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            height: 100vh;
+        }
+
+        iframe {
+            height: 100%;
+            border: none;
+            background-color: #ffffff;
+        }
+
+        .iframe-esq {
+            flex: 0 0 40%;
+            border-right: 1px solid #e0e0e0;
+        }
+
+        .iframe-dir {
+            flex: 0 0 60%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="painel-unificado">
+        <iframe class="iframe-esq" src="composicao_familiar.html" title="Tela de Composição Familiar"></iframe>
+        <iframe class="iframe-dir" id="frame-atualizacao" src="Atualizacao.html" title="Tela de Atualização de Dados"></iframe>
+    </div>
+
+    <script>
+        window.addEventListener('message', function(event) {
+            // Se receber uma mensagem pedindo para mudar o CPF, repassa para a tela de Atualização
+            if (event.data && event.data.acao === 'mudarCPF') {
+                const frameDireito = document.getElementById('frame-atualizacao');
+                if (frameDireito && frameDireito.contentWindow) {
+                    frameDireito.contentWindow.postMessage(event.data, '*');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

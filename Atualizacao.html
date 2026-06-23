@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Endereços Gov - Protótipo Fiel</title>
+    <style>
+        :root {
+            --gov-blue: #1351b4;
+            --gov-dark-blue: #0c326f;
+            --border-color: #d1d5db;
+            --bg-color: #f8f9fa;
+            --text-main: #333;
+            --text-muted: #6b7280;
+            --gov-yellow: #ffc107;
+            --gov-yellow-text: #856404;
+        }
+
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #ffffff; display: flex; justify-content: center; margin: 0; padding: 0; }
+        .mobile-container { width: 100%; max-width: 100%; background-color: #ffffff; border-radius: 0; box-shadow: none; display: flex; flex-direction: column; position: relative; height: 100vh; overflow: hidden; }
+        .header { display: flex; justify-content: flex-start; align-items: center; padding: 24px 20px 16px 20px; border-bottom: 1px solid var(--border-color); background-color: #fff; z-index: 2; }
+        .header h2 { margin: 0; font-size: 18px; color: var(--text-main); }
+        .citizen-info { padding: 16px 20px; border-bottom: 1px solid var(--border-color); background-color: #fff; z-index: 2; }
+        .citizen-name { font-weight: bold; font-size: 16px; }
+        .citizen-cpf { font-size: 14px; color: var(--text-muted); margin-top: 4px; }
+        .page-content { flex-grow: 1; overflow-y: auto; padding-bottom: 90px; background-color: #fff; }
+        .data-section { padding: 20px; border-bottom: 1px solid var(--border-color); }
+        .section-title { font-size: 12px; font-weight: bold; color: var(--text-main); text-transform: uppercase; margin-bottom: 0; }
+        .info-box { border: 1px solid var(--border-color); border-radius: 4px; padding: 12px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 8px; }
+        .info-box.address-box { align-items: flex-start; }
+        .selected-box { border: 1px solid var(--gov-yellow); background-color: #fffdf5; margin-bottom: 8px; animation: fadeIn 0.3s ease-in-out; }
+        .info-text { font-size: 14px; color: var(--text-main); line-height: 1.4; }
+        .info-text span.hint { color: var(--text-muted); font-style: italic; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; white-space: nowrap; margin-left: 10px; }
+        .badge-primary { background-color: var(--gov-blue); color: white; }
+        .badge-warning { background-color: var(--gov-yellow); color: var(--gov-yellow-text); display: inline-block; margin-top: 5px; }
+        .btn-action { background: none; border: none; color: var(--gov-blue); font-weight: bold; font-size: 14px; cursor: pointer; display: flex; align-items: center; padding: 0; margin-top: 12px; }
+        .btn-action span { font-size: 18px; margin-right: 8px; font-weight: normal; }
+        .btn-action:hover { text-decoration: underline; }
+        .expanded-list { display: none; margin-top: 15px; padding-top: 15px; border-top: 1px dashed var(--border-color); animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        .helper-text { font-size: 13px; color: var(--text-muted); margin-bottom: 15px; line-height: 1.4; }
+        .scrollable { max-height: 180px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-color); margin-bottom: 15px; }
+        .scrollable::-webkit-scrollbar { width: 6px; }
+        .scrollable::-webkit-scrollbar-thumb { background-color: #c1c1c1; border-radius: 4px; }
+        .radio-option { display: flex; align-items: flex-start; padding: 12px; border-bottom: 1px solid var(--border-color); cursor: pointer; }
+        .radio-option:last-child { border-bottom: none; }
+        .radio-option:hover { background-color: #e5e7eb; }
+        .radio-option input[type="radio"] { margin-top: 2px; margin-right: 12px; transform: scale(1.2); cursor: pointer; }
+        .radio-label { font-size: 14px; color: var(--text-main); width: 100%; }
+        .checkbox-container { font-size: 13px; color: var(--text-main); display: flex; align-items: center; margin-bottom: 15px; cursor: pointer; }
+        .checkbox-container input { margin-right: 8px; transform: scale(1.2); }
+        .add-form-container { display: none; padding-top: 15px; border-top: 1px dashed var(--border-color); animation: fadeIn 0.3s ease-in-out; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 14px; font-weight: bold; color: var(--text-main); margin-bottom: 5px; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 14px; box-sizing: border-box; }
+        .btn-continue { background-color: var(--gov-blue); color: white; border: none; padding: 12px 24px; border-radius: 20px; font-size: 14px; font-weight: bold; cursor: pointer; display: block; width: 100%; text-align: center; }
+        .btn-continue:hover{ background-color: var(--gov-dark-blue); }
+        .sticky-footer { position: absolute; bottom: 0; width: 100%; background: white; padding: 15px 20px; box-sizing: border-box; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; z-index: 10; }
+        .btn-confirmar-geral { background-color: var(--gov-blue); color: white; border: none; padding: 12px 28px; border-radius: 25px; font-size: 15px; font-weight: bold; cursor: pointer; display: flex; align-items: center; transition: 0.2s; }
+        .btn-confirmar-geral span { margin-right: 8px; font-size: 18px; }
+        .btn-confirmar-geral:hover { background-color: var(--gov-dark-blue); transform: scale(1.02); }
+        .modal { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 20; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 25px; border-radius: 8px; text-align: center; width: 80%; border-top: 5px solid #28a745; }
+
+        .citizen-header-row { display: flex; justify-content: space-between; align-items: flex-start; }
+        .section-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .familiar-toggle { display: flex; align-items: center; font-size: 14px; color: var(--text-main); font-style: italic; cursor: pointer; }
+        .familiar-toggle input[type="checkbox"] { appearance: none; -webkit-appearance: none; background-color: #fff; margin: 0 0 0 8px; width: 20px; height: 20px; border: 1px solid var(--border-color); border-radius: 50%; display: grid; place-content: center; cursor: pointer; }
+        .familiar-toggle input[type="checkbox"]::before { content: ""; width: 10px; height: 10px; border-radius: 50%; transform: scale(0); transition: 120ms transform ease-in-out; box-shadow: inset 1em 1em var(--gov-blue); }
+        .familiar-toggle input[type="checkbox"]:checked::before { transform: scale(1); }
+        .familiar-toggle input[type="checkbox"]:checked { border-color: var(--gov-blue); }
+        
+        .disabled-content { opacity: 0.35; pointer-events: none; user-select: none; transition: opacity 0.3s ease; }
+    </style>
+</head>
+<body>
+
+    <div class="mobile-container">
+        <div class="header">
+            <h2>Dados do Cidadão</h2>
+        </div>
+
+        <div class="citizen-info">
+            <div class="citizen-header-row">
+                <div>
+                    <div class="citizen-name" id="cit-name"></div>
+                    <div class="citizen-cpf" id="cit-cpf"></div>
+                </div>
+                <label class="familiar-toggle" style="font-size: 16px;">
+                    Familiar <input type="checkbox" id="global-familiar-check" onchange="toggleGlobalFamiliar(this.checked)">
+                </label>
+            </div>
+        </div>
+
+        <div class="page-content" id="scroll-area">
+            
+            <div class="data-section" id="section-email">
+                <div class="section-header-row">
+                    <div class="section-title" id="title-email">EMAIL</div>
+                    <label class="familiar-toggle">
+                        Familiar <input type="checkbox" id="check-email" onchange="toggleSectionFamiliar('email', this.checked)">
+                    </label>
+                </div>
+                
+                <div id="content-email" class="content-wrapper">
+                    <div class="info-box" id="original-email"></div>
+                    
+                    <div id="display-email" style="display: none;"></div>
+                    
+                    <div class="expanded-list" id="list-email">
+                        <div class="helper-text">Encontramos <strong id="count-email">0</strong> endereços de e-mail. Selecione o e-mail secundário ou adicione um novo e-mail.</div>
+                        <div class="scrollable" id="scroll-email"></div>
+                         <button class="btn-action" onclick="showAddForm('email')">
+                            <span>+</span> Adicionar um novo e-mail
+                        </button>
+                    </div>
+
+                    <div class="add-form-container" id="add-form-email">
+                        <div class="section-title" style="margin-bottom:12px;">Adicionar e-mail</div>
+                        <div class="form-group">
+                            <label>Endereço de e-mail</label>
+                            <input type="email" id="new-email-input" placeholder="seuemail@mail.com">
+                        </div>
+                        <button class="btn-continue" onclick="confirmAdd('email')">Continuar</button>
+                    </div>
+
+                    <button class="btn-action" id="btn-email" onclick="abrirLista('email')">
+                        <span>+</span> Selecionar outro e-mail
+                    </button>
+                </div>
+            </div>
+
+            <div class="data-section" id="section-telefone">
+                <div class="section-header-row">
+                    <div class="section-title" id="title-telefone">TELEFONE</div>
+                    <label class="familiar-toggle">
+                        Familiar <input type="checkbox" id="check-telefone" onchange="toggleSectionFamiliar('telefone', this.checked)">
+                    </label>
+                </div>
+
+                <div id="content-telefone" class="content-wrapper">
+                    <div class="info-box" id="original-telefone"></div>
+                    
+                    <div id="display-telefone" style="display: none;"></div>
+
+                    <div class="expanded-list" id="list-telefone">
+                        <div class="helper-text">Encontramos <strong id="count-telefone">0</strong> telefones em nossa base de dados. Selecione o número SECUNDÁRIO ou adicione um novo telefone.</div>
+                        <div class="scrollable" id="scroll-telefone"></div>
+                         <button class="btn-action" onclick="showAddForm('telefone')">
+                            <span>+</span> Adicionar um novo telefone
+                        </button>
+                    </div>
+
+                    <div class="add-form-container" id="add-form-telefone">
+                         <div class="section-title" style="margin-bottom:12px;">Adicionar telefone</div>
+                        <div class="form-group">
+                            <label>Telefone</label>
+                            <input type="tel" id="new-telefone-input" placeholder="(00) 00000-0000">
+                        </div>
+                        <button class="btn-continue" onclick="confirmAdd('telefone')">Continuar</button>
+                    </div>
+
+                    <button class="btn-action" id="btn-telefone" onclick="abrirLista('telefone')">
+                        <span>+</span> Selecionar outro telefone
+                    </button>
+                </div>
+            </div>
+
+            <div class="data-section" id="section-endereco">
+                <div class="section-header-row">
+                    <div class="section-title" id="title-endereco">ENDEREÇO</div>
+                    <label class="familiar-toggle">
+                        Familiar <input type="checkbox" id="check-endereco" onchange="toggleSectionFamiliar('endereco', this.checked)">
+                    </label>
+                </div>
+
+                <div id="content-endereco" class="content-wrapper">
+                    <div class="info-box address-box" id="original-endereco"></div>
+                    
+                    <div id="display-endereco" style="display: none;"></div>
+
+                    <div class="expanded-list" id="list-endereco">
+                        <div class="helper-text">Encontramos <strong id="count-endereco">0</strong> endereços em nossa base. Selecione o seu OUTRO endereço ou adicione um novo.</div>
+                        <div class="scrollable" id="scroll-endereco"></div>
+                        <button class="btn-action" onclick="showAddForm('endereco')">
+                            <span>+</span> Adicionar um novo endereço
+                        </button>
+                    </div>
+
+                    <div class="add-form-container" id="add-form-endereco">
+                        <div class="section-title" style="margin-bottom:12px;">Adicionar endereço</div>
+                        <div class="form-group">
+                            <label>CEP</label>
+                            <input type="text" id="new-cep-input" placeholder="00000-000">
+                        </div>
+                        <div class="form-group">
+                            <label>Logradouro</label>
+                            <input type="text" id="new-logradouro-input" placeholder="Rua das Flores">
+                        </div>
+                        <div class="form-group">
+                            <label>Número</label>
+                            <input type="text" id="new-numero-input" placeholder="324">
+                        </div>
+                        <div class="form-group">
+                            <label>Complemento</label>
+                            <input type="text" id="new-complemento-input" placeholder="ap 302">
+                        </div>
+                        <div class="form-group">
+                            <label>Bairro</label>
+                            <input type="text" id="new-bairro-input" placeholder="Centro">
+                        </div>
+                        <div class="form-group">
+                            <label>Cidade</label>
+                            <input type="text" id="new-cidade-input" placeholder="Curitiba">
+                        </div>
+                        <div class="form-group">
+                            <label>Estado</label>
+                            <input type="text" id="new-estado-input" placeholder="Paraná">
+                        </div>
+                        <button class="btn-continue" onclick="confirmAdd('endereco')">Continuar</button>
+                    </div>
+
+                    <button class="btn-action" id="btn-endereco" onclick="abrirLista('endereco')">
+                        <span>+</span> Selecionar outro endereço
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="sticky-footer">
+            <button class="btn-confirmar-geral" onclick="confirmarTudo()"><span>&#x2714;</span> Confirmar</button>
+        </div>
+
+        <div id="modal-sucesso" class="modal">
+            <div class="modal-content">
+                <div style="color: #28a745; font-size: 40px; margin-bottom: 10px;">&#x2714;</div>
+                <p style="margin: 0; color: var(--text-main); font-weight: bold; font-size: 16px;">Os dados foram definidos com sucesso.</p>
+                <button onclick="fecharModal()" style="margin-top: 20px; padding: 8px 20px; background: var(--gov-blue); color: white; border: none; border-radius: 4px; cursor: pointer;">Voltar</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="BCcontatos.js"></script>
+
+    <script>
+        let secaoAbertaAtual = null;
+        let cpfAtual = null;
+        let selecoesPendentes = { email: null, telefone: null, endereco: null };
+
+        // === MEMÓRIA DO SISTEMA ===
+        let bancoLocal = JSON.parse(sessionStorage.getItem('EnderecosGovDB'));
+        if (!bancoLocal) {
+            bancoLocal = JSON.parse(JSON.stringify(BCcontatos)); 
+            sessionStorage.setItem('EnderecosGovDB', JSON.stringify(bancoLocal));
+        }
+
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.acao === 'mudarCPF') {
+                carregarDados(event.data.cpf);
+            }
+        });
+
+        // Função que acende o botão novamente caso o usuário queira refazer a escolha
+        function habilitarEdicao() {
+            if (!cpfAtual) return;
+            bancoLocal[cpfAtual].confirmado = false;
+            
+            const btnConfirmar = document.querySelector('.btn-confirmar-geral');
+            btnConfirmar.innerHTML = `<span>&#x2714;</span> Confirmar`;
+            btnConfirmar.style.backgroundColor = 'var(--gov-blue)';
+        }
+
+        // --- CONTROLE DOS CHECKBOXES FAMILIARES ---
+        function toggleSectionFamiliar(secaoId, isChecked, isFromLoad = false) {
+            if (!isFromLoad) habilitarEdicao();
+
+            const content = document.getElementById('content-' + secaoId);
+            if (isChecked) {
+                content.classList.add('disabled-content');
+                if (secaoAbertaAtual === secaoId) {
+                    fecharEConfirmarSelecaoInterna(secaoId);
+                }
+            } else {
+                content.classList.remove('disabled-content');
+            }
+            atualizarGlobalCheckState();
+        }
+
+        function toggleGlobalFamiliar(isChecked, isFromLoad = false) {
+            const sections = ['email', 'telefone', 'endereco'];
+            sections.forEach(sec => {
+                document.getElementById('check-' + sec).checked = isChecked;
+                toggleSectionFamiliar(sec, isChecked, isFromLoad);
+            });
+        }
+
+        function atualizarGlobalCheckState() {
+            const emailChecked = document.getElementById('check-email').checked;
+            const telChecked = document.getElementById('check-telefone').checked;
+            const endChecked = document.getElementById('check-endereco').checked;
+            document.getElementById('global-familiar-check').checked = (emailChecked && telChecked && endChecked);
+        }
+
+        // --- DESENHA A TELA COM OS DADOS ---
+        function carregarDados(cpf) {
+            cpfAtual = cpf;
+            selecoesPendentes = { email: null, telefone: null, endereco: null };
+            
+            const dados = bancoLocal[cpf];
+            if (!dados) return;
+
+            // Garantimos que a chave "confirmados" exista no objeto para os dados secundários
+            dados.confirmados = dados.confirmados || {};
+
+            // Configura a cor e estado do Botão Principal
+            const btnConfirmar = document.querySelector('.btn-confirmar-geral');
+            if (dados.confirmado) {
+                btnConfirmar.innerHTML = `<span>&#x2714;</span> Confirmado`;
+                btnConfirmar.style.backgroundColor = '#188038'; // Verde sucesso
+            } else {
+                btnConfirmar.innerHTML = `<span>&#x2714;</span> Confirmar`;
+                btnConfirmar.style.backgroundColor = 'var(--gov-blue)'; // Azul padrão
+            }
+
+            document.getElementById('global-familiar-check').checked = false;
+
+            ['email', 'telefone', 'endereco'].forEach(secaoId => {
+                document.getElementById('display-' + secaoId).style.display = 'none';
+                document.getElementById('list-' + secaoId).style.display = 'none';
+                document.getElementById('add-form-' + secaoId).style.display = 'none';
+                document.getElementById('original-' + secaoId).style.display = 'flex';
+                
+                const btn = document.getElementById('btn-' + secaoId);
+                btn.innerHTML = `<span>+</span> Selecionar outro ${secaoId}`;
+                btn.style.display = 'flex';
+            });
+            secaoAbertaAtual = null;
+
+            // Restaura estado visual da família
+            document.getElementById('check-email').checked = dados.familiarEmail || false;
+            toggleSectionFamiliar('email', dados.familiarEmail || false, true);
+
+            document.getElementById('check-telefone').checked = dados.familiarTelefone || false;
+            toggleSectionFamiliar('telefone', dados.familiarTelefone || false, true);
+
+            document.getElementById('check-endereco').checked = dados.familiarEndereco || false;
+            toggleSectionFamiliar('endereco', dados.familiarEndereco || false, true);
+            
+            atualizarGlobalCheckState();
+
+            document.getElementById('cit-name').innerText = dados.cidadao.nome;
+            document.getElementById('cit-cpf').innerText = `CPF ${dados.cidadao.cpf}`;
+
+            // --- RENDERIZA O DADO ORIGINAL (NUNCA É APAGADO OU SUBSTITUÍDO) ---
+            const htmlEmailGov = `
+                <div class="info-text">${dados.govbr.email.valor} <span class="hint">(${dados.govbr.email.tipo})</span></div>
+                <div class="badge badge-primary">Atual no gov.br</div>
+            `;
+            document.getElementById('original-email').innerHTML = htmlEmailGov;
+
+            const htmlTelGov = `
+                <div class="info-text">${dados.govbr.telefone.valor} <span class="hint">(${dados.govbr.telefone.tipo})</span></div>
+                <div class="badge badge-primary">Atual no gov.br</div>
+            `;
+            document.getElementById('original-telefone').innerHTML = htmlTelGov;
+
+            const end = dados.govbr.endereco;
+            const partesEnd = [end.logradouro, end.complemento, end.cidade, end.cep ? `CEP: ${end.cep}` : ""].filter(Boolean);
+            const enderecoFormatado = partesEnd.join('<br>');
+            const htmlEndGov = `
+                <div class="info-text">
+                    <strong style="font-size:12px; display:block; margin-bottom:4px;">${end.tipo}</strong>
+                    ${enderecoFormatado}
+                </div>
+                <div class="badge badge-primary">Atual no gov.br</div>
+            `;
+            document.getElementById('original-endereco').innerHTML = htmlEndGov;
+
+            // --- RENDERIZA AS LISTAS DE BUSCA DAS BASES ---
+            document.getElementById('count-email').innerText = dados.bases.emails.length;
+            document.getElementById('scroll-email').innerHTML = dados.bases.emails.map(email => `
+                <label class="radio-option"><input type="radio" name="radio-email" value="${email}"><div class="radio-label">${email}</div></label>
+            `).join('');
+
+            document.getElementById('count-telefone').innerText = dados.bases.telefones.length;
+            document.getElementById('scroll-telefone').innerHTML = dados.bases.telefones.map(tel => `
+                <label class="radio-option"><input type="radio" name="radio-telefone" value="${tel}"><div class="radio-label">${tel}</div></label>
+            `).join('');
+
+            document.getElementById('count-endereco').innerText = dados.bases.enderecos.length;
+            document.getElementById('scroll-endereco').innerHTML = dados.bases.enderecos.map(end => `
+                <label class="radio-option">
+                    <input type="radio" name="radio-endereco" value="${end.logradouro}<br>CEP: ${end.cep}">
+                    <div class="radio-label">${end.logradouro}<br><span style="color:var(--text-muted); font-size:12px;">CEP: ${end.cep}</span></div>
+                </label>
+            `).join('');
+
+            // --- RENDERIZA OS DADOS SECUNDÁRIOS CONFIRMADOS ANTERIORMENTE ---
+            ['email', 'telefone', 'endereco'].forEach(secaoId => {
+                if (dados.confirmados[secaoId] && !dados['familiar' + secaoId.charAt(0).toUpperCase() + secaoId.slice(1)]) {
+                    const valor = dados.confirmados[secaoId];
+                    selecoesPendentes[secaoId] = valor; 
+                    
+                    const containerDisplay = document.getElementById('display-' + secaoId);
+                    const botaoAcao = document.getElementById('btn-' + secaoId);
+
+                    containerDisplay.innerHTML = `
+                        <div class="info-box" style="${secaoId === 'endereco' ? 'align-items: flex-start;' : ''}">
+                            <div class="info-text">
+                                ${secaoId === 'endereco' ? '<strong style="font-size:12px; display:block; margin-bottom:4px;">OUTRO</strong>' : ''}
+                                ${valor} <span class="hint">${secaoId !== 'endereco' ? '(Secundário)' : ''}</span><br>
+                                <span class="badge" style="background-color:#e0e0e0; color:#333; margin-left:0; margin-top:8px;">Adicionado</span>
+                            </div>
+                        </div>
+                    `;
+                    containerDisplay.style.display = 'block';
+                    botaoAcao.innerHTML = `<span>✎</span> Alterar seleção`;
+                    botaoAcao.style.display = 'flex';
+                }
+            });
+        }
+
+
+        // --- LÓGICA DE SELEÇÃO E FORMULÁRIO ---
+        function abrirLista(secaoId) {
+            if (secaoAbertaAtual !== null && secaoAbertaAtual !== secaoId) {
+                fecharEConfirmarSelecaoInterna(secaoAbertaAtual);
+            }
+            document.getElementById('btn-' + secaoId).style.display = 'none';
+            document.getElementById('display-' + secaoId).style.display = 'none';
+            
+            const lista = document.getElementById('list-' + secaoId);
+            lista.style.display = 'block';
+            document.getElementById('add-form-' + secaoId).style.display = 'none';
+            
+            setTimeout(() => { lista.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
+            secaoAbertaAtual = secaoId;
+        }
+
+        function showAddForm(secaoId) {
+            document.getElementById('list-' + secaoId).style.display = 'none';
+            const addForm = document.getElementById('add-form-' + secaoId);
+            addForm.style.display = 'block';
+            setTimeout(() => { addForm.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
+        }
+
+        function confirmAdd(secaoId) {
+            let valorInserido = "";
+            let isValid = false;
+
+            if (secaoId === 'email') {
+                valorInserido = document.getElementById('new-email-input').value;
+                isValid = valorInserido.trim() !== "";
+            } else if (secaoId === 'telefone') {
+                valorInserido = document.getElementById('new-telefone-input').value;
+                isValid = valorInserido.trim() !== "";
+            } else if (secaoId === 'endereco') {
+                const logradouro = document.getElementById('new-logradouro-input').value;
+                const numero = document.getElementById('new-numero-input').value;
+                const complemento = document.getElementById('new-complemento-input').value;
+                const cidade = document.getElementById('new-cidade-input').value;
+                const estado = document.getElementById('new-estado-input').value;
+                const cep = document.getElementById('new-cep-input').value;
+                
+                valorInserido = `${logradouro}, ${numero} - ${complemento}<br>${cidade} - ${estado}<br>CEP: ${cep}`;
+                isValid = logradouro.trim() !== "" && cep.trim() !== ""; 
+            }
+
+            if (isValid) {
+                processarSelecao(secaoId, valorInserido);
+                if(secaoId === 'email') document.getElementById('new-email-input').value = '';
+                if(secaoId === 'telefone') document.getElementById('new-telefone-input').value = '';
+                if(secaoId === 'endereco') {
+                     document.getElementById('new-logradouro-input').value = ''; document.getElementById('new-numero-input').value = '';
+                     document.getElementById('new-complemento-input').value = ''; document.getElementById('new-cidade-input').value = '';
+                     document.getElementById('new-estado-input').value = ''; document.getElementById('new-cep-input').value = '';
+                }
+            } else {
+                alert("Por favor, preencha os dados corretamente.");
+            }
+        }
+
+        function fecharEConfirmarSelecaoInterna(secaoId) {
+            const containerLista = document.getElementById('list-' + secaoId);
+            const radioSelecionado = containerLista.querySelector('input[type="radio"]:checked');
+            const addFormVisivel = document.getElementById('add-form-' + secaoId).style.display === 'block';
+
+            if(addFormVisivel){
+                 document.getElementById('add-form-' + secaoId).style.display = 'none';
+                 // Se tinha algo pendente (ou confirmado), restaura
+                 if(selecoesPendentes[secaoId]) processarSelecao(secaoId, selecoesPendentes[secaoId], true);
+                 else {
+                     const botaoAcao = document.getElementById('btn-' + secaoId);
+                     botaoAcao.innerHTML = `<span>+</span> Selecionar outro ${secaoId}`;
+                     botaoAcao.style.display = 'flex';
+                 }
+            } else if (radioSelecionado) {
+                processarSelecao(secaoId, radioSelecionado.value);
+            } else if (selecoesPendentes[secaoId]) {
+                 // Se abriu a lista e fechou sem marcar nova opção, mas já tinha dado
+                 processarSelecao(secaoId, selecoesPendentes[secaoId], true);
+            } else {
+                selecoesPendentes[secaoId] = null;
+                const botaoAcao = document.getElementById('btn-' + secaoId);
+                botaoAcao.innerHTML = `<span>+</span> Selecionar outro ${secaoId}`;
+                botaoAcao.style.display = 'flex';
+                containerLista.style.display = 'none';
+            }
+            secaoAbertaAtual = null;
+        }
+
+        function processarSelecao(secaoId, valor, isRestore = false) {
+            if(!isRestore) habilitarEdicao(); 
+            selecoesPendentes[secaoId] = valor; 
+
+            const containerDisplay = document.getElementById('display-' + secaoId);
+            const botaoAcao = document.getElementById('btn-' + secaoId);
+            const containerLista = document.getElementById('list-' + secaoId);
+            const addForm = document.getElementById('add-form-' + secaoId);
+
+            // Monta a caixa secundária de pré-confirmação (Amarela)
+            containerDisplay.innerHTML = `
+                <div class="info-box selected-box" style="${secaoId === 'endereco' ? 'align-items: flex-start;' : ''}">
+                    <div class="info-text">
+                        ${secaoId === 'endereco' ? '<strong style="font-size:12px; display:block; margin-bottom:4px;">OUTRO</strong>' : ''}
+                        ${valor} <span class="hint">${secaoId !== 'endereco' ? '(Secundário)' : ''}</span><br>
+                        <span class="badge badge-warning">⚠️ Aguardando confirmação</span>
+                    </div>
+                </div>
+            `;
+            containerDisplay.style.display = 'block';
+            botaoAcao.innerHTML = `<span>✎</span> Alterar seleção`;
+            botaoAcao.style.display = 'flex';
+            containerLista.style.display = 'none';
+            addForm.style.display = 'none';
+            secaoAbertaAtual = null;
+        }
+
+        // --- SALVAMENTO E FINALIZAÇÃO ---
+        function confirmarTudo() {
+            if (secaoAbertaAtual !== null) {
+                fecharEConfirmarSelecaoInterna(secaoAbertaAtual);
+            }
+
+            if (!cpfAtual || !bancoLocal[cpfAtual]) return;
+            const dados = bancoLocal[cpfAtual];
+
+            // Protege a área de secundários confirmados
+            dados.confirmados = dados.confirmados || {};
+
+            dados.familiarEmail = document.getElementById('check-email').checked;
+            if (dados.familiarEmail) {
+                dados.confirmados.email = "Mesmo contato da família";
+            } else if (selecoesPendentes.email) {
+                dados.confirmados.email = selecoesPendentes.email;
+            } else {
+                delete dados.confirmados.email;
+            }
+
+            dados.familiarTelefone = document.getElementById('check-telefone').checked;
+            if (dados.familiarTelefone) {
+                dados.confirmados.telefone = "Mesmo contato da família";
+            } else if (selecoesPendentes.telefone) {
+                dados.confirmados.telefone = selecoesPendentes.telefone;
+            } else {
+                delete dados.confirmados.telefone;
+            }
+
+            dados.familiarEndereco = document.getElementById('check-endereco').checked;
+            if (dados.familiarEndereco) {
+                dados.confirmados.endereco = "Mesmo endereço da família";
+            } else if (selecoesPendentes.endereco) {
+                dados.confirmados.endereco = selecoesPendentes.endereco;
+            } else {
+                delete dados.confirmados.endereco;
+            }
+
+            dados.confirmado = true;
+            sessionStorage.setItem('EnderecosGovDB', JSON.stringify(bancoLocal));
+            
+            document.getElementById('modal-sucesso').style.display = 'flex';
+        }
+
+        function fecharModal() {
+            document.getElementById('modal-sucesso').style.display = 'none';
+            // Recarrega a página para transformar as caixas amarelas em caixas brancas fixas
+            carregarDados(cpfAtual);
+        }
+    </script>
+</body>
+</html>
