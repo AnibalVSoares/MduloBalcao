@@ -88,7 +88,7 @@
                     <div class="citizen-cpf" id="cit-cpf"></div>
                 </div>
                 <label class="familiar-toggle" style="font-size: 16px;">
-                    Familiar <input type="checkbox" id="global-familiar-check" onchange="toggleGlobalFamiliar(this.checked)">
+                    Usar dado da Familia <input type="checkbox" id="global-familiar-check" onchange="toggleGlobalFamiliar(this.checked)">
                 </label>
             </div>
         </div>
@@ -99,7 +99,7 @@
                 <div class="section-header-row">
                     <div class="section-title" id="title-email">EMAIL</div>
                     <label class="familiar-toggle">
-                        Familiar <input type="checkbox" id="check-email" onchange="toggleSectionFamiliar('email', this.checked)">
+                        Usar dado da Familia <input type="checkbox" id="check-email" onchange="toggleSectionFamiliar('email', this.checked)">
                     </label>
                 </div>
                 
@@ -135,7 +135,7 @@
                 <div class="section-header-row">
                     <div class="section-title" id="title-telefone">TELEFONE</div>
                     <label class="familiar-toggle">
-                        Familiar <input type="checkbox" id="check-telefone" onchange="toggleSectionFamiliar('telefone', this.checked)">
+                        Usar dado da Familia <input type="checkbox" id="check-telefone" onchange="toggleSectionFamiliar('telefone', this.checked)">
                     </label>
                 </div>
 
@@ -171,7 +171,7 @@
                 <div class="section-header-row">
                     <div class="section-title" id="title-endereco">ENDEREÇO</div>
                     <label class="familiar-toggle">
-                        Familiar <input type="checkbox" id="check-endereco" onchange="toggleSectionFamiliar('endereco', this.checked)">
+                        Usar dado da Familia <input type="checkbox" id="check-endereco" onchange="toggleSectionFamiliar('endereco', this.checked)">
                     </label>
                 </div>
 
@@ -250,7 +250,6 @@
         let cpfAtual = null;
         let selecoesPendentes = { email: null, telefone: null, endereco: null };
 
-        // === MEMÓRIA DO SISTEMA ===
         let bancoLocal = JSON.parse(sessionStorage.getItem('EnderecosGovDB'));
         if (!bancoLocal) {
             bancoLocal = JSON.parse(JSON.stringify(BCcontatos)); 
@@ -263,7 +262,6 @@
             }
         });
 
-        // Função que acende o botão novamente caso o usuário queira refazer a escolha
         function habilitarEdicao() {
             if (!cpfAtual) return;
             bancoLocal[cpfAtual].confirmado = false;
@@ -273,7 +271,6 @@
             btnConfirmar.style.backgroundColor = 'var(--gov-blue)';
         }
 
-        // --- CONTROLE DOS CHECKBOXES FAMILIARES ---
         function toggleSectionFamiliar(secaoId, isChecked, isFromLoad = false) {
             if (!isFromLoad) habilitarEdicao();
 
@@ -304,7 +301,6 @@
             document.getElementById('global-familiar-check').checked = (emailChecked && telChecked && endChecked);
         }
 
-        // --- DESENHA A TELA COM OS DADOS ---
         function carregarDados(cpf) {
             cpfAtual = cpf;
             selecoesPendentes = { email: null, telefone: null, endereco: null };
@@ -312,17 +308,15 @@
             const dados = bancoLocal[cpf];
             if (!dados) return;
 
-            // Garantimos que a chave "confirmados" exista no objeto para os dados secundários
             dados.confirmados = dados.confirmados || {};
 
-            // Configura a cor e estado do Botão Principal
             const btnConfirmar = document.querySelector('.btn-confirmar-geral');
             if (dados.confirmado) {
                 btnConfirmar.innerHTML = `<span>&#x2714;</span> Confirmado`;
-                btnConfirmar.style.backgroundColor = '#188038'; // Verde sucesso
+                btnConfirmar.style.backgroundColor = '#188038'; 
             } else {
                 btnConfirmar.innerHTML = `<span>&#x2714;</span> Confirmar`;
-                btnConfirmar.style.backgroundColor = 'var(--gov-blue)'; // Azul padrão
+                btnConfirmar.style.backgroundColor = 'var(--gov-blue)'; 
             }
 
             document.getElementById('global-familiar-check').checked = false;
@@ -339,7 +333,6 @@
             });
             secaoAbertaAtual = null;
 
-            // Restaura estado visual da família
             document.getElementById('check-email').checked = dados.familiarEmail || false;
             toggleSectionFamiliar('email', dados.familiarEmail || false, true);
 
@@ -354,7 +347,6 @@
             document.getElementById('cit-name').innerText = dados.cidadao.nome;
             document.getElementById('cit-cpf').innerText = `CPF ${dados.cidadao.cpf}`;
 
-            // --- RENDERIZA O DADO ORIGINAL (NUNCA É APAGADO OU SUBSTITUÍDO) ---
             const htmlEmailGov = `
                 <div class="info-text">${dados.govbr.email.valor} <span class="hint">(${dados.govbr.email.tipo})</span></div>
                 <div class="badge badge-primary">Atual no gov.br</div>
@@ -379,7 +371,6 @@
             `;
             document.getElementById('original-endereco').innerHTML = htmlEndGov;
 
-            // --- RENDERIZA AS LISTAS DE BUSCA DAS BASES ---
             document.getElementById('count-email').innerText = dados.bases.emails.length;
             document.getElementById('scroll-email').innerHTML = dados.bases.emails.map(email => `
                 <label class="radio-option"><input type="radio" name="radio-email" value="${email}"><div class="radio-label">${email}</div></label>
@@ -398,7 +389,6 @@
                 </label>
             `).join('');
 
-            // --- RENDERIZA OS DADOS SECUNDÁRIOS CONFIRMADOS ANTERIORMENTE ---
             ['email', 'telefone', 'endereco'].forEach(secaoId => {
                 if (dados.confirmados[secaoId] && !dados['familiar' + secaoId.charAt(0).toUpperCase() + secaoId.slice(1)]) {
                     const valor = dados.confirmados[secaoId];
@@ -423,8 +413,8 @@
             });
         }
 
+        window.onload = () => carregarDados("345.678.901-23");
 
-        // --- LÓGICA DE SELEÇÃO E FORMULÁRIO ---
         function abrirLista(secaoId) {
             if (secaoAbertaAtual !== null && secaoAbertaAtual !== secaoId) {
                 fecharEConfirmarSelecaoInterna(secaoAbertaAtual);
@@ -490,7 +480,6 @@
 
             if(addFormVisivel){
                  document.getElementById('add-form-' + secaoId).style.display = 'none';
-                 // Se tinha algo pendente (ou confirmado), restaura
                  if(selecoesPendentes[secaoId]) processarSelecao(secaoId, selecoesPendentes[secaoId], true);
                  else {
                      const botaoAcao = document.getElementById('btn-' + secaoId);
@@ -500,7 +489,6 @@
             } else if (radioSelecionado) {
                 processarSelecao(secaoId, radioSelecionado.value);
             } else if (selecoesPendentes[secaoId]) {
-                 // Se abriu a lista e fechou sem marcar nova opção, mas já tinha dado
                  processarSelecao(secaoId, selecoesPendentes[secaoId], true);
             } else {
                 selecoesPendentes[secaoId] = null;
@@ -521,7 +509,8 @@
             const containerLista = document.getElementById('list-' + secaoId);
             const addForm = document.getElementById('add-form-' + secaoId);
 
-            // Monta a caixa secundária de pré-confirmação (Amarela)
+            document.getElementById('original-' + secaoId).style.display = 'flex';
+
             containerDisplay.innerHTML = `
                 <div class="info-box selected-box" style="${secaoId === 'endereco' ? 'align-items: flex-start;' : ''}">
                     <div class="info-text">
@@ -539,7 +528,6 @@
             secaoAbertaAtual = null;
         }
 
-        // --- SALVAMENTO E FINALIZAÇÃO ---
         function confirmarTudo() {
             if (secaoAbertaAtual !== null) {
                 fecharEConfirmarSelecaoInterna(secaoAbertaAtual);
@@ -548,7 +536,6 @@
             if (!cpfAtual || !bancoLocal[cpfAtual]) return;
             const dados = bancoLocal[cpfAtual];
 
-            // Protege a área de secundários confirmados
             dados.confirmados = dados.confirmados || {};
 
             dados.familiarEmail = document.getElementById('check-email').checked;
@@ -586,7 +573,6 @@
 
         function fecharModal() {
             document.getElementById('modal-sucesso').style.display = 'none';
-            // Recarrega a página para transformar as caixas amarelas em caixas brancas fixas
             carregarDados(cpfAtual);
         }
     </script>
